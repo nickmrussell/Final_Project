@@ -4,29 +4,28 @@
 #   Check Package:             'Cmd + Shift + E'
 #   Test Package:              'Cmd + Shift + T'
 
-library(usethis)
-library(devtools)
-library(roxygen2)
-library(withr)
-
-
-setwd("~/Grad/test")
-
 rm(list=ls())
-library(tidyverse)
 
-### Based off Daniel San Miguel's Script
+library(easypackages)
+
+libraries(c("tidyverse",
+            "tools",
+            "ggrepel",
+            "plyr",
+            "rstudioapi",
+            "pdftools"))
+
 ###
 # choose folder where CSV files are located, make sure to only have the data converted CSV files (from ABF format) in this folder
 #setwd(rstudioapi::selectDirectory())
 
 # manually set which file you want to run on below
 # uncomment the one you want or select one
-rstudioapi::showDialog(title = "Select Data file",
-                       message = "Select CSV Data File to run this Script on")
-mycsvfile <- rstudioapi::selectFile(caption = "Select CSV Data File to run this Script on",
-                                    filter = "CSV Files (*.csv)",
-                                    existing = TRUE)
+showDialog(title = "Select Data file",
+           message = "Select CSV Data File to run this Script on")
+mycsvfile <- selectFile(caption = "Select CSV Data File to run this Script on",
+                        filter = "CSV Files (*.csv)",
+                        existing = TRUE)
 
 # Select Experiment Identifiers file that should be a CSV file in directory above which contains four columns:
 # ObsID, MouseID, CellID, Filename_IV
@@ -34,19 +33,19 @@ mycsvfile <- rstudioapi::selectFile(caption = "Select CSV Data File to run this 
 # without the .csv extension added to the name
 # This will obviously be specific for each experiment so edit this accordingly
 # to match the length of the number of CSV files you are trying to process in this directory
-rstudioapi::showDialog(title = "Select Experiment Identifiers file",
+showDialog(title = "Select Experiment Identifiers file",
                        message = "Select Experiment Identifiers file that corresponds to this CSV Data File")
-identifiers <- read_csv(rstudioapi::selectFile(caption = "Select Experiment Identifiers file that corresponds to this CSV Data File",
-                                               filter = "CSV Files (*.csv)",
-                                               existing = TRUE))
+identifiers <- read_csv(selectFile(caption = "Select Experiment Identifiers file that corresponds to this CSV Data File",
+                                   filter = "CSV Files (*.csv)",
+                                   existing = TRUE))
 
-rstudioapi::showDialog(title = "Select Output Folder",
-                       message = "Select Folder where you would like Output data to be saved.")
-setwd(rstudioapi::selectDirectory())
+showDialog(title = "Select Output Folder",
+           message = "Select Folder where you would like Output data to be saved.")
+setwd(selectDirectory())
 
 
 # get filename without csv extension
-filename <- tools::file_path_sans_ext(basename(mycsvfile))
+filename <- file_path_sans_ext(basename(mycsvfile))
 
 dir.create(paste("Single Data Output ",
                  get("filename"),
@@ -67,13 +66,8 @@ all_files_APs_all_sweeps <- NULL
 # import data and get rid of top two rows since the way the data is output from abf to csv
 # these are not necessary as we will transform and fix column names later
 # and then this removes any empty columns that are only NAs
-df <- read_csv(mycsvfile, col_names = FALSE) %>%
-  slice(-c(1:2)) %>%
-  select(
-    where(
-      ~!all(is.na(.x))
-    )
-  )
+df <- read_csv(mycsvfile, col_names = FALSE, skip = 2) %>%
+  select(where(~!all(is.na(.x))))
 
 # count total number of sweeps and create vectors for new names of columns based on number of sweep
 # assumes first column 1 is Time data and remaining columns 2 and onward are Sweeps data
@@ -100,7 +94,7 @@ df1 <- df %>%
             `Voltage (mV)` = as.numeric(`Voltage (mV)`),
             `dV/dT` = (`Voltage (mV)` - lag(`Voltage (mV)` )) / (`Time (ms)` - lag(`Time (ms)`)),
             Sweep = as.numeric(Sweep),
-            `Normalised Voltage (mV)` = as.numeric(`Voltage (mV)` + 75)) %>%
+            `Normalised Voltage (mV)` = as.numeric(`Voltage (mV)` + abs(min(`Voltage (mV)`)))) %>%
   arrange(Sweep)
 
 # remove variables we don't need later
@@ -190,19 +184,16 @@ sweeps2 <- df1 %>%
 
 all_APs_all_sweeps <- inner_join(sweeps1, sweeps2)
 
-# get rid of split peaks where there are two points very close together (within plus or minus 3 ms)
+# filter only unique split peaks that occur at least 3 ms away from each other so we are not iterating through redundant peaks with our 3 ms window later
 split_peaks <- all_APs_all_sweeps %>%
   group_by(Sweep) %>%
   filter(abs(`Time (ms)` - lag(`Time (ms)`)) <= 3 |
-           abs(`Time (ms)` - lead(`Time (ms)`)) <= 3)
+         abs(`Time (ms)` - lead(`Time (ms)`)) <= 3)
 
-tmpdf <- NULL
-tmptime <- NULL
-tmpsplitdf <- NULL
 splitdf <- NULL
-maxsplit <- NULL
 truepeaks <- NULL
 
+# get rid of split peaks where there are two points very close together (within plus or minus 3 ms)
 if (nrow(split_peaks) >= 1) {
   for (thisrow in 1:nrow(split_peaks)) {
     tmpdf = split_peaks[thisrow,]
@@ -342,6 +333,7 @@ if (nrow(sweeps_AP_count) > 1) {
 
   # calculate halfwidth
   `HalfWidth Volts` <- `Threshold Em (mV)` - `Half Amplitude (mV)`
+  
   # dV = V2 - V1
   # so V2 = dV + V1
   V2 <- `Threshold Em (mV)` + `Half Amplitude (mV)`
@@ -357,14 +349,12 @@ if (nrow(sweeps_AP_count) > 1) {
   # this finds formula of curve around point
   xs <- half_ap_range %>%
     ungroup() %>%
-    select(`Time (ms)`) %>%
-    unlist()
+    pull(`Time (ms)`)
 
   ys <- half_ap_range %>%
     ungroup() %>%
-    select(`Voltage (mV)`) %>%
     slice(1:2) %>%
-    unlist()
+    pull(`Voltage (mV)`)
 
   linearfit <- lm(ys ~ xs)
 
@@ -393,13 +383,11 @@ if (nrow(sweeps_AP_count) > 1) {
   # create a dataframe of what rheobase value corresponds to what sweep
   # here we just said sweeps 10 through 20 with their corresponding values
   # from 50 to 550 with increasing 50 steps in between
-  rheobase_df <- data.frame(Sweep = c(10:20), Rheobase = c(seq(50, 550, 50)))
+  rheobase_df <- tibble(Sweep = c(10:20), Rheobase = c(seq(50, 550, 50)))
 
   `Rheobase (pA)` <- rheobase_df %>%
     filter(Sweep == `Sweep # for 1st AP fired`) %>%
-    select(Rheobase) %>%
-    unlist() %>%
-    as.numeric()
+    pull(Rheobase)
 
 
   `fAHP_1stAP Voltage (mV)` <- df1 %>%
@@ -409,10 +397,8 @@ if (nrow(sweeps_AP_count) > 1) {
                      `Threshold Time (ms)`,
                      (`Threshold Time (ms)` + 15))) %>%
     slice_min(n = 1, order_by = `Voltage (mV)`) %>%
-    select(`Voltage (mV)`) %>%
-    unlist() %>%
-    as.numeric() %>%
-    head(1)
+    slice_head(n = 1) %>% 
+    pull(`Voltage (mV)`)
 
   `fAHP_1stAP Time (ms)` <- df1 %>%
     ungroup() %>%
@@ -421,10 +407,8 @@ if (nrow(sweeps_AP_count) > 1) {
                      `Threshold Time (ms)`,
                      (`Threshold Time (ms)` + 5))) %>%
     slice_min(n = 1, order_by = `Voltage (mV)`) %>%
-    select(`Time (ms)`) %>%
-    unlist() %>%
-    as.numeric() %>%
-    head(1)
+    slice_head(n = 1) %>% 
+    pull(`Time (ms)`)
 
   `fAHP_1stAP Time Relative to Threshold` <- abs(`Threshold Time (ms)` - `fAHP_1stAP Time (ms)`)
 
@@ -433,24 +417,18 @@ if (nrow(sweeps_AP_count) > 1) {
     ungroup() %>%
     filter(Sweep == `Sweep # for 1st AP fired` &
              `Time (ms)` == as.character(`Threshold Time (ms)` + 10)) %>%
-    select(`Voltage (mV)`) %>%
-    unlist() %>%
-    as.numeric()
+    pull(`Voltage (mV)`)
 
   sAHP_1stAP <- df1 %>%
     ungroup() %>%
     filter(Sweep == `Sweep # for 1st AP fired` &
              `Time (ms)` == as.character(`Threshold Time (ms)` + 15)) %>%
-    select(`Voltage (mV)`) %>%
-    unlist() %>%
-    as.numeric()
+    pull(`Voltage (mV)`)
 
   `Sweep # for SFA` <- AP_count_all_sweeps %>%
     arrange(desc(`AP Count`)) %>%
-    select(Sweep) %>%
-    slice(1) %>%
-    unlist() %>%
-    as.numeric()
+    pull(Sweep) %>% 
+    head(1)
 
 
   # this gets the Interevent Interval by subtracting current time from previous time
@@ -477,15 +455,11 @@ if (nrow(sweeps_AP_count) > 1) {
       slice_max(n = 1, order_by = `Peak-to-Peak Frequency (Hz)`)
 
     `Peak to peak Frequency_Max` <- `Peak to peak df` %>%
-      select(`Peak-to-Peak Frequency (Hz)`) %>%
-      unlist() %>%
-      as.numeric() %>%
+      pull(`Peak-to-Peak Frequency (Hz)`) %>%
       head(1)
 
     `Sweep # for Peak to peak Frequency_Max` <- `Peak to peak df` %>%
-      select(Sweep) %>%
-      unlist() %>%
-      as.numeric() %>%
+      pull(Sweep) %>%
       min()
 
     `Interevent Interval_1` <- NA
@@ -504,15 +478,11 @@ if (nrow(sweeps_AP_count) > 1) {
       slice_max(n = 1, order_by = `Peak-to-Peak Frequency (Hz)`)
 
     `Peak to peak Frequency_Max` <- `Peak to peak df` %>%
-      select(`Peak-to-Peak Frequency (Hz)`) %>%
-      unlist() %>%
-      as.numeric() %>%
+      pull(`Peak-to-Peak Frequency (Hz)`) %>%
       head(1)
 
     `Sweep # for Peak to peak Frequency_Max` <- `Peak to peak df` %>%
-      select(Sweep) %>%
-      unlist() %>%
-      as.numeric() %>%
+      pull(Sweep) %>%
       min()
 
     `Interevent Interval_1` <- all_APs_all_sweeps %>%
@@ -520,22 +490,18 @@ if (nrow(sweeps_AP_count) > 1) {
       filter(Sweep == `Sweep # for SFA`) %>%
       ungroup() %>%
       mutate(`Interevent Interval (ms)` = (`Time (ms)` - lag(`Time (ms)`))) %>%
-      select(`Interevent Interval (ms)`) %>%
-      drop_na() %>%
-      slice_head(n = 1) %>%
-      unlist() %>%
-      as.numeric()
+      drop_na(`Interevent Interval (ms)`) %>%
+      pull(`Interevent Interval (ms)`) %>% 
+      head(1)
 
     `Interevent Interval_last` <- all_APs_all_sweeps %>%
       group_by(Sweep) %>%
       filter(Sweep == `Sweep # for SFA`) %>%
       ungroup() %>%
       mutate(`Interevent Interval (ms)` = (`Time (ms)` - lag(`Time (ms)`))) %>%
-      select(`Interevent Interval (ms)`) %>%
-      drop_na() %>%
-      slice_tail(n = 1) %>%
-      unlist() %>%
-      as.numeric()
+      drop_na(`Interevent Interval (ms)`) %>%
+      pull(`Interevent Interval (ms)`) %>% 
+      tail(1)
 
     `SFA (1st ISI/last ISI)` <- (`Interevent Interval_1`/`Interevent Interval_last`)
 
@@ -623,7 +589,7 @@ if (nrow(sweeps_AP_count) > 1) {
                           "Sweep # for SFA" = `Sweep # for SFA`)
 }
 
-all_data <- plyr::rbind.fill(all_data, finaldf) %>%
+all_data <- rbind.fill(all_data, finaldf) %>%
   arrange(ObsID) %>%
   relocate(ends_with("AP Count"),
            .before = `Sweep # for 1st AP fired`)
@@ -631,24 +597,24 @@ all_data <- plyr::rbind.fill(all_data, finaldf) %>%
 count_obs <- NULL
 tmp_pl <- NULL
 pdfname <- NULL
-for (k in unique(all_APs_all_sweeps$Sweep)) {
-  count_obs <- length(all_APs_all_sweeps$`Voltage (mV)`[all_APs_all_sweeps$Sweep == k])
-  as.numeric()
+for (sweep in unique(all_APs_all_sweeps$Sweep)) {
+  count_obs <- length(all_APs_all_sweeps$`Voltage (mV)`[all_APs_all_sweeps$Sweep == sweep])
+
   tmp_pl <- df1 %>%
     group_by(Sweep) %>%
-    filter(any(Sweep == k)) %>%
+    filter(any(Sweep == sweep)) %>%
     ggplot(aes(x = `Time (ms)` ,
                y = `Voltage (mV)`),
            lab) +
-    geom_line(size=0.2,
+    geom_line(linewidth = 0.2,
               show.legend = FALSE) +
-    geom_point(data = all_APs_all_sweeps %>% filter(Sweep == k),
+    geom_point(data = all_APs_all_sweeps %>% filter(Sweep == sweep),
                size = 2,
                show.legend = FALSE,
                aes(x = `Time (ms)`,
                    y = `Voltage (mV)`,
                    color = "#FB8072")) +
-    ggrepel::geom_text_repel(data = all_APs_all_sweeps %>% filter(Sweep == k),
+    geom_text_repel(data = all_APs_all_sweeps %>% filter(Sweep == sweep),
                              size = 2,
                              show.legend = FALSE,
                              aes(x = `Time (ms)`,
@@ -659,9 +625,9 @@ for (k in unique(all_APs_all_sweeps$Sweep)) {
           plot.subtitle = element_text(size = 10, face = "bold", hjust = c(0,1), colour = c("black", "#FB8072")),
           axis.title = element_text(size = 10, face = "bold"),
           plot.title = element_text(size = 15, face = "bold", hjust = 0.5)) +
-    labs(subtitle = c(paste("Sweep Number:", k), paste("Total Number of Peaks:", count_obs))) +
+    labs(subtitle = c(paste("Sweep Number:", sweep), paste("Total Number of Peaks:", count_obs))) +
     ggtitle(get("filename"))
-  pdfname <- paste(get("filename"), get("k"), sep = "_Sweep_") %>% paste(".pdf", sep = "")
+  pdfname <- paste(get("filename"), get("sweep"), sep = "_Sweep_") %>% paste(".pdf", sep = "")
   ggsave(filename = pdfname, plot = tmp_pl, path = "Plots", width = 10, height = 6.5)
 }
 
@@ -671,10 +637,10 @@ write_csv(finaldf,
                 ".csv",
                 sep = ""))
 
-pdftools::pdf_combine(input = list.files(path = "Plots", full.names=TRUE, pattern=".pdf"),
-                      output = paste("All Plots ",
-                                     get("filename"),
-                                     ".pdf",
-                                     sep = ""))
+pdf_combine(input = list.files(path = "Plots", full.names=TRUE, pattern=".pdf"),
+            output = paste("All Plots ",
+                           get("filename"),
+                           ".pdf",
+                           sep = ""))
 
 unlink("Plots", recursive = TRUE)
