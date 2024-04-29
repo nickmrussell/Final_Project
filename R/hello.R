@@ -8,12 +8,16 @@ rm(list=ls())
 
 library(easypackages)
 
-libraries(c("tidyverse",
+libraries(c("usethis",
+            "devtools",
+            "roxygen2",
+            "withr",
             "tools",
             "ggrepel",
             "plyr",
             "rstudioapi",
-            "pdftools"))
+            "pdftools",
+            "tidyverse"))
 
 ###
 # choose folder where CSV files are located, make sure to only have the data converted CSV files (from ABF format) in this folder
