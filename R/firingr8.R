@@ -1,3 +1,13 @@
+#' @title A function for processing pClamp voltage trace data
+#' @description This function allows you to detect action potentials and extract membrane properties in a batch file processing format
+#' @param csvfile_path Path to the data that needs to be processed
+#' @param experiment_identifier_path Path to the file-identifier csv
+#' @param output_path Path to the folder where the processed and visualized data will be saved
+#' @keywords electrophysiology
+#' @export
+#' @examples
+#' process_ephys_csv(csvfile_path= "C:/Users/Admin/Data/data1.csv", experiment_identifier_path = "C:/Users/Admin/Data/data1_identifiers.csv", output_path = "C:/Users/Admin/Data/Data_Output")
+
 process_ephys_csv <- function(csvfile_path, experiment_identifier_path, output_path) {
   mycsvfile <- csvfile_path
 
