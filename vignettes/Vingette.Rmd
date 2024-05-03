@@ -1,0 +1,29 @@
+---
+title: "Vingette"
+author: "NICK, TURNER, and DANIEL"
+date: "2024-05-03"
+output: html_document
+---
+
+# Hello there,
+## This is a package for electrophysiology data that determines the firing rate (and a few other parameters relavent too!)
+## First, we will install this package then bring in the example data provided
+```{r}
+library(firingr8)
+input <- "/"
+indentifiers <- "/"
+```
+
+## There is only one function which will require electrophysiology data, an identifier dataset to determine which cell it is, and a selected output
+```{r}
+process_ephys_csv(input, indentifiers, "/")
+
+```
+
+## Now, go check your desktop to see the out put!
+#Here is an example of the CSV file. 
+```{r}
+#filepath of output that we made
+
+
+```
