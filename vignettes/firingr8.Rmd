@@ -21,22 +21,18 @@ library(firingr8)
 ```
 
 # Hello there,
-## This is a package for electrophysiology data that determines the firing rate (and a few other parameters relavent too!)
-## First, we will install this package then bring in the example data provided
-```{r}
-library(firingr8)
-input <- raw_ephys_data
-indentifiers <- identifiers_sample
-```
-
-## There is only one function which will require electrophysiology data, an identifier dataset to determine which cell it is, and a selected output
+## This is a package for electrophysiology data that determines the firing rate (and a few other relevant pieces of data electrophysiologists like to know like halfwidth, sweep # with first action potential, and more!)
+## Example usage is provided below using sample raw_ephys_data and identifiers_sample data.
 ```{r, eval = FALSE}
-process_ephys_csv(input, identifiers, ".")
+library(firingr8)
+
+process_ephys_csv(csvfile_path = raw_ephys_data, experiment_identifier_path = identifiers_sample, output_path = ".")
 ```
 
-## Now, go check your desktop to see the out put!
-#Here is an example of the CSV file. 
+## There is only one function which will require electrophysiology CSV data, an identifier dataset to determine which cell it is, and a selected output directory where it will make the folder to store the csv results and plot pdf it generates.
+
+## Now, if you didn't change the output_path parameter from ".", go check your current directory where this folder was created based on title of CSV file which for the demo is raw_ephys_data.
 ```{r}
-#output in example is "." which is present directory
+#output in example is "." which is current directory
 getwd()
 ```
