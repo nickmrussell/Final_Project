@@ -18,5 +18,8 @@ Imports:
     plyr,
     tools
 Suggests: 
-    tidyverse
+    tidyverse,
+    knitr, 
+    rmarkdown
+VignetteBuilder: knitr
 RoxygenNote: 7.3.1
