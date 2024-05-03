@@ -19,14 +19,17 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(firingr8)
 ```
+# firingr8
 
-# Hello there,
 ## This is a package for electrophysiology data that determines the firing rate (and a few other relevant pieces of data electrophysiologists like to know like halfwidth, sweep # with first action potential, and more!)
-## Example usage is provided below using sample raw_ephys_data and identifiers_sample data.
+
+### Example usage is provided below using sample raw_ephys_data and identifiers_sample data.
 ```{r, eval = FALSE}
 library(firingr8)
 
 process_ephys_csv(csvfile_path = "raw_ephys_data.csv", experiment_identifier_path = "identifiers_sample.csv", output_path = ".")
+
+list.files()
 ```
 
 ## There is only one function which will require electrophysiology CSV data, an identifier dataset to determine which cell it is, and a selected output directory where it will make the folder to store the csv results and plot pdf it generates.
