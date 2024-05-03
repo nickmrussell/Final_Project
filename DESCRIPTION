@@ -1,0 +1,22 @@
+Package: firingr8
+Type: Package
+Title: Counts Firing Rates from Electrophysiology CSV Data
+Version: 0.1.0
+Author: c("Daniel San Miguel", "Nick Russell", "Turner Lime")
+Maintainer: Daniel San Miguel <dsanmiguel@utexas.edu>
+Description: 
+    Counts the firing rates for each sweep from Patch-Clamp Electrophysiology Data.
+    Also gets various data electrophysiologists may be interested in such as half width,
+    resting membrane potential, peak voltage, peak to peak frequency, interevent interval,
+    and many others.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    ggrepel,
+    pdftools,
+    plyr,
+    tools
+Suggests: 
+    tidyverse
+RoxygenNote: 7.3.1
