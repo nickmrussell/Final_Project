@@ -10,10 +10,6 @@
 
 process_ephys_csv <- function(csvfile_path, experiment_identifier_path, output_path) {
   
-  suppressWarnings()
-  
-  suppressMessages()
-  
   mycsvfile <- csvfile_path
 
   # Select Experiment Identifiers file that should be a CSV file in directory above which contains four columns:
