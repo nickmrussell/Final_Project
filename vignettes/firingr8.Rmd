@@ -12,6 +12,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
   comment = "#>"
 )
 ```
@@ -24,7 +26,7 @@ library(firingr8)
 ## This is a package for electrophysiology data that determines the firing rate (and a few other relevant pieces of data electrophysiologists like to know like halfwidth, sweep # with first action potential, and more!)
 
 ### Example usage is provided below using sample raw_ephys_data and identifiers_sample data.
-```{r, eval = FALSE}
+```{r, eval = FALSE, warning = FALSE, message = FALSE}
 library(firingr8)
 
 process_ephys_csv(csvfile_path = "https://raw.githubusercontent.com/nickmrussell/Final_Project/main/data/identifiers_sample.csv", experiment_identifier_path = "https://raw.githubusercontent.com/nickmrussell/Final_Project/main/data/identifiers_sample.csv", output_path = ".")
