@@ -6,7 +6,7 @@
 #' @keywords electrophysiology
 #' @export
 #' @examples
-#'process_ephys_csv(csvfile_path = "./data/raw_ephys_data.csv", experiment_identifier_path = "./data/identifiers_sample.csv", output_path = ".")
+#'process_ephys_csv(csvfile_path = "https://raw.githubusercontent.com/nickmrussell/Final_Project/main/data/raw_ephys_data.csv", experiment_identifier_path = "https://raw.githubusercontent.com/nickmrussell/Final_Project/main/data/identifiers_sample.csv", output_path = ".")
 
 process_ephys_csv <- function(csvfile_path, experiment_identifier_path, output_path) {
   mycsvfile <- csvfile_path
