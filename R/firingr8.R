@@ -10,6 +10,8 @@
 
 process_ephys_csv <- function(csvfile_path, experiment_identifier_path, output_path) {
   
+  suppressWarning({
+    
   mycsvfile <- csvfile_path
 
   # Select Experiment Identifiers file that should be a CSV file in directory above which contains four columns:
@@ -606,5 +608,11 @@ process_ephys_csv <- function(csvfile_path, experiment_identifier_path, output_p
   unlink("Plots", recursive = TRUE)
 
   setwd(current_directory)
-
+  
+  print(paste0("Function completed. The data folder containing results was created in ", 
+               getwd(), 
+               " titled ", 
+               paste0("Single Data Output ", get("filename"))))
+  })
+  return()
 }
