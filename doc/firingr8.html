@@ -357,7 +357,7 @@ action potential, and more!)</h2>
 identifiers_sample data.</h3>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(firingr8)</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">process_ephys_csv</span>(<span class="at">csvfile_path =</span> <span class="st">&quot;raw_ephys_data.csv&quot;</span>, <span class="at">experiment_identifier_path =</span> <span class="st">&quot;identifiers_sample.csv&quot;</span>, <span class="at">output_path =</span> <span class="st">&quot;.&quot;</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">process_ephys_csv</span>(<span class="at">csvfile_path =</span> <span class="fu">curl</span>(<span class="st">&quot;https://raw.githubusercontent.com/nickmrussell/Final_Project/main/data/identifiers_sample.csv&quot;</span>), <span class="at">experiment_identifier_path =</span> <span class="fu">curl</span>(<span class="st">&quot;https://raw.githubusercontent.com/nickmrussell/Final_Project/main/data/identifiers_sample.csv&quot;</span>), <span class="at">output_path =</span> <span class="st">&quot;.&quot;</span>)</span>
 <span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
 <span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="fu">list.files</span>()</span></code></pre></div>
 </div>

@@ -10,7 +10,7 @@
 
 process_ephys_csv <- function(csvfile_path, experiment_identifier_path, output_path) {
   
-  suppressWarnings({
+  suppressMessages(suppressWarnings({
   
   mycsvfile <- csvfile_path
 
@@ -613,6 +613,6 @@ process_ephys_csv <- function(csvfile_path, experiment_identifier_path, output_p
                getwd(), 
                " titled ", 
                paste0("Single Data Output ", get("filename"))))
-  })
+  }))
   return()
 }
