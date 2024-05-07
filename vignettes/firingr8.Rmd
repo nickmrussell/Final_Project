@@ -29,7 +29,7 @@ library(firingr8)
 ```{r, eval = FALSE, warning = FALSE, message = FALSE}
 library(firingr8)
 
-process_ephys_csv(csvfile_path = "https://raw.githubusercontent.com/nickmrussell/Final_Project/main/data/identifiers_sample.csv", experiment_identifier_path = "https://raw.githubusercontent.com/nickmrussell/Final_Project/main/data/identifiers_sample.csv", output_path = ".")
+process_ephys_csv(csvfile_path = curl("https://raw.githubusercontent.com/nickmrussell/Final_Project/main/data/identifiers_sample.csv"), experiment_identifier_path = curl("https://raw.githubusercontent.com/nickmrussell/Final_Project/main/data/identifiers_sample.csv"), output_path = ".")
 
 list.files()
 ```
